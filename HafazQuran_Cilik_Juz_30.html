@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="ms" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HafazQuran Cilik Juz 30</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch-polyfill@1.0.3/DragDropTouch.ext.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kidYellow: '#FFD166',
+                        kidPink: '#FF70A6',
+                        kidOrange: '#FF9770',
+                        kidBlue: '#70D6FF',
+                        kidGreen: '#06D6A0',
+                        kidPurple: '#B5179E',
+                        kidDark: '#1E1B2E',
+                        kidCard: '#2A2640'
+                    },
+                    fontFamily: {
+                        arabic: ['Amiri', 'serif'],
+                        sans: ['Fredoka', 'cursive', 'sans-serif'],
+                        translit: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            line-height: 2.2;
+            direction: rtl;
+        }
+        .translit-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+            word-spacing: 1.5px;
+            direction: ltr;
+            text-align: left;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1E1B2E; }
+        ::-webkit-scrollbar-thumb { background: #FF70A6; border-radius: 99px; }
+        .bounce-on-hover:hover { transform: scale(1.05) rotate(-1deg); }
+        .drag-over { border-color: #06D6A0 !important; background-color: rgba(6, 214, 160, 0.2) !important; }
+        .dragging { opacity: 0.4; transform: scale(0.95); }
+        .drag-piece { touch-action: none; -webkit-user-select: none; user-select: none; }
+    </style>
+</head>
+<body class="bg-kidDark text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-kidPink selection:text-white pb-36">
+
+    <!-- TOP NAVIGATION TABS -->
+    <div id="topNavbar" class="sticky top-0 z-40 bg-kidDark/95 backdrop-blur-md border-b-4 border-kidPink/30 px-3 py-2 shadow-xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
+            <div class="flex items-center gap-1.5 bg-kidCard p-1.5 rounded-2xl border-2 border-slate-700/80 shadow-inner w-full sm:w-auto justify-between sm:justify-center">
+                <button id="tabReader" onclick="switchMainTab('reader')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-kidPink to-kidPurple text-white shadow-md transition">
+                    <i class="fa-solid fa-book-open"></i> Hafaz
+                </button>
+                <button id="tabAnalytics" onclick="switchMainTab('analytics')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line text-kidYellow"></i> Analisis
+                </button>
+                <button id="tabGame" onclick="switchMainTab('game')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-gamepad text-kidGreen"></i> Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-5xl mx-auto w-full px-3 py-5">
+
+        <!-- VIEW 1: HOME LIST (Hafaz) -->
+        <div id="viewHomeList" class="flex flex-col gap-4">
+            <div class="mb-2 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-kidYellow"></i>
+                        <input type="text" id="searchInput" oninput="filterSurahs()" placeholder="Cari Surah (eg. An-Nas)..."
+                               class="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-kidDark border-2 border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-kidPink transition font-semibold">
+                    </div>
+                    <button onclick="toggleAiVoiceSearch()" id="btnAiVoiceSearch" class="px-3 py-2.5 bg-kidPurple hover:bg-purple-700 text-white rounded-2xl font-bold text-xs flex items-center gap-1.5 shadow-lg transition bounce-on-hover" title="Cari Ayat Quran dengan Suara AI">
+                        <i class="fa-solid fa-microphone text-kidYellow"></i> <span class="hidden sm:inline">Cari Suara AI</span>
+                    </button>
+                </div>
+
+                <div class="mt-3 bg-kidDark p-3 rounded-2xl border border-slate-700 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🎯</span>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Matlamat Peribadi Mingguan</p>
+                            <p id="displayPersonalGoal" class="text-xs font-black text-kidYellow">Hafal 2 Surah Baru</p>
+                        </div>
+                    </div>
+                    <button onclick="editPersonalGoal()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] font-bold border border-slate-600 transition">
+                        Tukar
+                    </button>
+                </div>
+
+                <div class="mt-3 flex rounded-xl bg-kidDark p-1 border border-slate-700/80 text-[11px] font-bold">
+                    <button id="filterAll" onclick="setFilter('all')" class="flex-1 py-1.5 rounded-lg bg-kidPink text-white">Semua</button>
+                    <button id="filterInProgress" onclick="setFilter('inprogress')" class="flex-1 py-1.5 rounded-lg text-slate-400">Proses 🚀</button>
+                    <button id="filterMemorized" onclick="setFilter('memorized')" class="flex-1 py-1.5 rounded-lg text-slate-400">Hafal ⭐</button>
+                </div>
+            </div>
+
+            <div id="surahList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full"></div>
+        </div>
+
+        <!-- VIEW 2: SURAH DETAIL / READER -->
+        <div id="viewSurahDetail" class="hidden flex-col gap-4 max-w-4xl mx-auto w-full">
+            <div class="bg-kidCard rounded-3xl p-4 border-2 border-slate-700 shadow-xl flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <div class="flex items-center gap-3">
+                        <button onclick="goBackHome()" class="w-10 h-10 rounded-2xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-white text-base transition">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <span id="currentSurahEmoji" class="text-3xl p-2 rounded-2xl bg-kidDark border border-slate-700">🌈</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 id="currentSurahName" class="text-xl font-extrabold text-white">An-Naba'</h2>
+                                <span id="currentSurahNumber" class="text-xs font-black px-2 py-0.5 rounded-xl bg-kidPurple text-white">#78</span>
+                            </div>
+                            <p id="currentSurahMeaning" class="text-xs text-kidBlue font-semibold">Berita Besar • 40 Ayat</p>
+                        </div>
+                    </div>
+
+                    <button id="btnStatusSurah" onclick="toggleSurahStatus()" class="px-3 py-2 rounded-2xl text-xs font-extrabold bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center gap-2 transition bounce-on-hover">
+                        <span id="statusIcon">⚪</span>
+                        <span id="statusSurahText">Belum Hafal</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs font-bold">
+                    <button onclick="toggleVisibility('arabic')" id="btnHideArabic" class="p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-eye-slash text-kidPink"></i> Arab
+                    </button>
+                    <button onclick="toggleVisibility('transliteration')" id="btnHideTranslit" class="p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-eye-slash text-kidYellow"></i> Rumi
+                    </button>
+                    <button onclick="toggleVisibility('translation')" id="btnHideTranslation" class="p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-eye-slash text-kidBlue"></i> Maksud
+                    </button>
+                    <button onclick="toggleBlurMode()" id="btnBlurMode" class="p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles text-kidPurple"></i> Uji Ingatan
+                    </button>
+                    <button onclick="toggleFollowAlongMode()" id="btnFollowAlong" class="p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-person-walking text-kidGreen"></i> Ikut Suara
+                    </button>
+                    <button onclick="toggleAiListener()" id="btnAiListener" class="col-span-2 sm:col-span-1 p-2 rounded-2xl bg-gradient-to-r from-kidGreen to-emerald-600 text-slate-900 border-2 border-emerald-400 flex items-center justify-center gap-2 transition bounce-on-hover shadow-lg">
+                        <i class="fa-solid fa-microphone-lines text-base"></i> <span id="aiListenerText">AI Uji Bacaan</span>
+                    </button>
+                </div>
+
+                <div id="aiFeedbackBox" class="hidden bg-kidDark border-2 border-emerald-500/60 p-3 rounded-2xl flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+                            <p id="aiStatusText" class="text-xs font-extrabold text-emerald-400">Mod AI Aktif: Sila baca dari ingatan / ikut suara...</p>
+                        </div>
+                        <span id="aiLiveTranscript" class="text-xs text-slate-300 italic truncate max-w-[200px]">"-"</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Skrin akan automatik mendedahkan perkataan yang anda baca dan menandakan sebarang kesilapan dalam warna merah.</p>
+                </div>
+            </div>
+
+            <div class="bg-kidCard rounded-3xl border-2 border-slate-700 p-4 sm:p-6 shadow-xl">
+                <div id="bismillahContainer" class="text-center py-3 mb-4 bg-kidDark/60 rounded-2xl border border-slate-700">
+                    <p class="arabic-text text-2xl sm:text-3xl text-kidYellow">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                </div>
+                <div id="versesContainer" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: WEEKLY ANALYTICS -->
+        <div id="sectionAnalytics" class="hidden flex-col gap-5 max-w-4xl mx-auto w-full">
+            <div class="text-center">
+                <h2 class="text-2xl font-black text-kidYellow mb-1">📊 Analisis Progress Mingguan</h2>
+                <p class="text-xs text-slate-300 font-semibold">Pantau pencapaian, streak, dan matlamat peribadi anda!</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-kidCard p-5 rounded-3xl border-2 border-slate-700 shadow-xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-kidYellow/20 border-2 border-kidYellow flex items-center justify-center text-2xl">🔥</div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Streak Aktif</p>
+                        <p id="statWeeklyStreak" class="text-xl font-black text-kidYellow">0 Hari</p>
+                    </div>
+                </div>
+                <div class="bg-kidCard p-5 rounded-3xl border-2 border-slate-700 shadow-xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-kidGreen/20 border-2 border-kidGreen flex items-center justify-center text-2xl">⭐</div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Surah Hafal</p>
+                        <p id="statWeeklyMemorized" class="text-xl font-black text-kidGreen">0 / 37</p>
+                    </div>
+                </div>
+                <div class="bg-kidCard p-5 rounded-3xl border-2 border-slate-700 shadow-xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-kidPink/20 border-2 border-kidPink flex items-center justify-center text-2xl">📈</div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Purata Sesi/Hari</p>
+                        <p id="statDailyAverage" class="text-xl font-black text-kidPink">0 Sesi</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-kidCard p-6 rounded-3xl border-2 border-slate-700 shadow-xl flex flex-col gap-4">
+                <h3 class="text-sm font-extrabold text-white flex items-center justify-between">
+                    <span><i class="fa-solid fa-chart-column text-kidPink mr-2"></i> Aktiviti Hafazan 7 Hari Lepas</span>
+                    <span class="text-[10px] text-slate-400 font-bold">Jumlah Sesi Bacaan</span>
+                </h3>
+                <div id="weeklyChartContainer" class="h-40 flex items-end justify-between gap-2"></div>
+                <div id="weeklyLabelsContainer" class="flex justify-between gap-2 text-[10px] font-bold text-slate-400"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-kidCard p-5 rounded-3xl border-2 border-slate-700 shadow-xl flex flex-col gap-3">
+                    <p class="text-xs text-slate-400 font-bold uppercase">Ayat Hafal Keseluruhan</p>
+                    <p id="advAyatCount" class="text-xl font-black text-kidGreen">0 / 0</p>
+                    <div class="h-3 rounded-full bg-kidDark overflow-hidden">
+                        <div id="advAyatBar" class="h-full bg-gradient-to-r from-kidGreen to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p id="advEstimate" class="text-xs text-slate-300 font-semibold"></p>
+                </div>
+
+                <div class="bg-kidCard p-5 rounded-3xl border-2 border-slate-700 shadow-xl flex flex-col gap-3">
+                    <p class="text-xs text-slate-400 font-bold uppercase">Perlu Ulang Kaji</p>
+                    <div id="advReviewList" class="flex flex-col gap-1.5 text-xs font-semibold text-slate-200"></div>
+                </div>
+            </div>
+
+            <div class="bg-kidCard p-6 rounded-3xl border-2 border-slate-700 shadow-xl flex flex-col gap-3">
+                <p class="text-xs text-slate-400 font-bold uppercase">Kemajuan Setiap Surah</p>
+                <div id="advSurahProgress" class="flex flex-col gap-2.5"></div>
+            </div>
+
+            <div class="bg-kidCard p-6 rounded-3xl border-2 border-slate-700 shadow-xl flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs text-slate-400 font-bold uppercase">Tugas Harian</p>
+                    <p id="dailyTasksSummary" class="text-xs font-black text-kidYellow"></p>
+                </div>
+                <div id="dailyTasksList" class="flex flex-col gap-2"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: GAME -->
+        <div id="sectionGame" class="hidden flex-col items-center justify-center min-h-[70vh] gap-5">
+            <div class="text-center max-w-md">
+                <h2 class="text-2xl font-black text-kidGreen mb-1">🧩 Permainan Susun Ayat Quran</h2>
+                <p class="text-xs text-slate-300 font-semibold">Tarik (*drag*) atau tekan sahaja ayat di bawah untuk susun mengikut urutan!</p>
+            </div>
+
+            <div class="flex items-center gap-2 bg-kidCard p-2 rounded-2xl border-2 border-slate-700">
+                <span class="text-xs font-bold text-slate-300 ml-2">Pilih Surah:</span>
+                <select id="gameSurahSelect" onchange="initDragDropGame()" class="bg-kidDark border-2 border-slate-700 text-white text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none">
+                    <option value="112">112. Al-Ikhlas (4 Ayat)</option>
+                    <option value="113">113. Al-Falaq (5 Ayat)</option>
+                    <option value="114">114. An-Nas (6 Ayat)</option>
+                    <option value="108">108. Al-Kawthar (3 Ayat)</option>
+                    <option value="103">103. Al-'Asr (3 Ayat)</option>
+                    <option value="110">110. An-Nasr (3 Ayat)</option>
+                </select>
+                <button onclick="initDragDropGame()" class="p-2 bg-kidPink hover:bg-pink-600 text-white rounded-xl font-bold text-xs">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </button>
+            </div>
+
+            <div class="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                <div class="bg-kidCard p-4 rounded-3xl border-2 border-slate-700 flex flex-col gap-3">
+                    <h3 class="text-xs font-extrabold text-kidYellow flex items-center justify-between">
+                        <span><i class="fa-solid fa-list-ol"></i> Petak Urutan Betul</span>
+                        <span class="text-[10px] text-slate-400">(Sentuh petak untuk pulangkan)</span>
+                    </h3>
+                    <div id="dropSlotsContainer" class="flex flex-col gap-2"></div>
+                </div>
+
+                <div class="bg-kidCard p-4 rounded-3xl border-2 border-slate-700 flex flex-col gap-3">
+                    <h3 class="text-xs font-extrabold text-kidPink flex items-center justify-between">
+                        <span><i class="fa-solid fa-hand-holding-hand"></i> Pilihan Ayat</span>
+                        <span class="text-[10px] text-slate-400">(Tarik @ Sentuh)</span>
+                    </h3>
+                    <div id="dragPiecesContainer" class="flex flex-col gap-2 min-h-[200px]"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-2">
+                <button onclick="checkGameAnswer()" class="px-6 py-3 bg-gradient-to-r from-kidGreen to-emerald-500 text-slate-900 font-extrabold text-sm rounded-2xl shadow-xl hover:scale-105 transition bounce-on-hover flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-lg"></i> Semak Jawapan!
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM AUDIO PLAYER -->
+    <div id="bottomPlayerBar" class="hidden fixed bottom-0 left-0 right-0 z-50 bg-kidCard/95 border-t-4 border-kidPink/40 backdrop-blur-md px-3 py-2 shadow-2xl transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col gap-2">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-1">
+                <div class="flex items-center gap-2">
+                    <span id="playerBadge" class="w-7 h-7 rounded-lg bg-kidDark border border-kidYellow flex items-center justify-center text-kidYellow font-black text-xs">78:1</span>
+                    <span id="playerSurahName" class="text-xs font-extrabold text-white truncate max-w-[180px] sm:max-w-xs">An-Naba' (Ayat 1)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="repeatStatusText" class="text-[10px] font-extrabold text-kidYellow bg-kidDark px-2 py-0.5 rounded-md border border-slate-700">Ulang: 1/1</span>
+                    <button onclick="togglePlayerMinimize()" id="btnTogglePlayer" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="playerExpandedContent" class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <div class="flex items-center gap-2 mx-auto sm:mx-0">
+                    <button onclick="playPrevAyah()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button id="btnMainPlay" onclick="togglePlayPause()" class="w-10 h-10 rounded-xl bg-gradient-to-r from-kidPink to-kidPurple text-white flex items-center justify-center font-black text-base shadow-lg bounce-on-hover">
+                        <i id="mainPlayIcon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+                    <button onclick="playNextAyah()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1 text-[11px] font-bold mx-auto sm:mx-0">
+                    <span class="text-slate-400 text-[9px] uppercase mr-1">Ulang:</span>
+                    <button onclick="setRepeatCount(1)" id="rep1" class="px-2 py-0.5 rounded-lg bg-kidPink text-white">1x</button>
+                    <button onclick="setRepeatCount(3)" id="rep3" class="px-2 py-0.5 rounded-lg text-slate-400 bg-kidDark">3x</button>
+                    <button onclick="setRepeatCount(5)" id="rep5" class="px-2 py-0.5 rounded-lg text-slate-400 bg-kidDark">5x</button>
+                    <button onclick="setRepeatCount(999)" id="repInf" class="px-2 py-0.5 rounded-lg text-slate-400 bg-kidDark">∞</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="none"></audio>
+
+    <script>
+        const juz30Surahs = [
+            { id: 78, name: "An-Naba'", arabic: "النبإ", meaning: "Berita Besar", verses: 40, type: "Makkiyah", emoji: "📢" },
+            { id: 79, name: "An-Nazi'at", arabic: "النازعات", meaning: "Malaikat Pencabut", verses: 46, type: "Makkiyah", emoji: "✨" },
+            { id: 80, name: "'Abasa", arabic: "عبس", meaning: "Bermuka Masam", verses: 42, type: "Makkiyah", emoji: "🌱" },
+            { id: 81, name: "At-Takwir", arabic: "التكوير", meaning: "Menggulung", verses: 29, type: "Makkiyah", emoji: "☀️" },
+            { id: 82, name: "Al-Infitar", arabic: "الإنفطار", meaning: "Terbelah", verses: 19, type: "Makkiyah", emoji: "🌌" },
+            { id: 83, name: "Al-Mutaffifin", arabic: "المطففين", meaning: "Orang Curang", verses: 36, type: "Makkiyah", emoji: "⚖️" },
+            { id: 84, name: "Al-Inshiqaq", arabic: "الإنشقاق", meaning: "Terbelah Dua", verses: 25, type: "Makkiyah", emoji: "☁️" },
+            { id: 85, name: "Al-Buruj", arabic: "البروج", meaning: "Gugusan Bintang", verses: 22, type: "Makkiyah", emoji: "⭐" },
+            { id: 86, name: "At-Tariq", arabic: "الطارق", meaning: "Pengunjung Malam", verses: 17, type: "Makkiyah", emoji: "🌟" },
+            { id: 87, name: "Al-A'la", arabic: "الأعلى", meaning: "Maha Tinggi", verses: 19, type: "Makkiyah", emoji: "🏔️" },
+            { id: 88, name: "Al-Ghashiyah", arabic: "الغاشية", meaning: "Hari Pembalasan", verses: 26, type: "Makkiyah", emoji: "🌅" },
+            { id: 89, name: "Al-Fajr", arabic: "الفجر", meaning: "Waktu Subuh", verses: 30, type: "Makkiyah", emoji: "🏙️" },
+            { id: 90, name: "Al-Balad", arabic: "البلد", meaning: "Negeri", verses: 20, type: "Makkiyah", emoji: "🏰" },
+            { id: 91, name: "Ash-Shams", arabic: "الشمس", meaning: "Matahari", verses: 15, type: "Makkiyah", emoji: "🌞" },
+            { id: 92, name: "Al-Layl", arabic: "الليل", meaning: "Malam", verses: 21, type: "Makkiyah", emoji: "🌙" },
+            { id: 93, name: "Ad-Duha", arabic: "الضحى", meaning: "Waktu Dhuha", verses: 11, type: "Makkiyah", emoji: "🌻" },
+            { id: 94, name: "Ash-Sharh", arabic: "الشرح", meaning: "Lapang Dada", verses: 8, type: "Makkiyah", emoji: "💖" },
+            { id: 95, name: "At-Tin", arabic: "التين", meaning: "Buah Tin", verses: 8, type: "Makkiyah", emoji: "🍈" },
+            { id: 96, name: "Al-'Alaq", arabic: "العلق", meaning: "Segumpal Darah", verses: 19, type: "Makkiyah", emoji: "📖" },
+            { id: 97, name: "Al-Qadr", arabic: "القدر", meaning: "Kemuliaan", verses: 5, type: "Makkiyah", emoji: "👑" },
+            { id: 98, name: "Al-Bayyinah", arabic: "البينة", meaning: "Bukti Nyata", verses: 8, type: "Madaniyah", emoji: "📜" },
+            { id: 99, name: "Az-Zalzalah", arabic: "الزلزلة", meaning: "Kegoncangan", verses: 8, type: "Madaniyah", emoji: "🌋" },
+            { id: 100, name: "Al-'Adiyat", arabic: "العاديات", meaning: "Kuda Perang", verses: 11, type: "Makkiyah", emoji: "🐎" },
+            { id: 101, name: "Al-Qari'ah", arabic: "القارعة", meaning: "Hari Kiamat", verses: 11, type: "Makkiyah", emoji: "🔔" },
+            { id: 102, name: "At-Takathur", arabic: "التكاثر", meaning: "Bermegah-megah", verses: 8, type: "Makkiyah", emoji: "💰" },
+            { id: 103, name: "Al-'Asr", arabic: "العصر", meaning: "Masa / Waktu", verses: 3, type: "Makkiyah", emoji: "⏳" },
+            { id: 104, name: "Al-Humazah", arabic: "الهمزة", meaning: "Pengumpat", verses: 9, type: "Makkiyah", emoji: "🗣️" },
+            { id: 105, name: "Al-Fil", arabic: "الفيل", meaning: "Tentera Gajah", verses: 5, type: "Makkiyah", emoji: "🐘" },
+            { id: 106, name: "Quraysh", arabic: "قريش", meaning: "Suku Quraisy", verses: 4, type: "Makkiyah", emoji: "🎪" },
+            { id: 107, name: "Al-Ma'un", arabic: "الماعون", meaning: "Barang Berguna", verses: 7, type: "Makkiyah", emoji: "🎁" },
+            { id: 108, name: "Al-Kawthar", arabic: "الكوثر", meaning: "Nikmat Banyak", verses: 3, type: "Makkiyah", emoji: "🌊" },
+            { id: 109, name: "Al-Kafirun", arabic: "الكافرون", meaning: "Orang Kafir", verses: 6, type: "Makkiyah", emoji: "🛡️" },
+            { id: 110, name: "An-Nasr", arabic: "النصر", meaning: "Pertolongan", verses: 3, type: "Madaniyah", emoji: "🏳️" },
+            { id: 111, name: "Al-Masad", arabic: "المسد", meaning: "Tali Sabut", verses: 5, type: "Makkiyah", emoji: "🪵" },
+            { id: 112, name: "Al-Ikhlas", arabic: "الإخلاص", meaning: "Keesaan Allah", verses: 4, type: "Makkiyah", emoji: "💎" },
+            { id: 113, name: "Al-Falaq", arabic: "الفلق", meaning: "Waktu Subuh", verses: 5, type: "Makkiyah", emoji: "🌤️" },
+            { id: 114, name: "An-Nas", arabic: "الناس", meaning: "Manusia", verses: 6, type: "Makkiyah", emoji: "👨‍👩‍👧‍👦" }
+        ];
+
+        let currentSurahIndex = 0;
+        let currentAyahIndex = 1;
+        let currentVersesData = [];
+        let isPlaying = false;
+        let targetRepeatCount = 1;
+        let currentRepeatCounter = 1;
+
+        let hideArabic = false;
+        let hideTranslit = false;
+        let hideTranslation = false;
+        let isBlurMode = false;
+        let activeFilter = 'all';
+        let isPlayerMinimized = false;
+
+        let gameSurahVerses = [];
+        let draggedElement = null;
+
+        let isAiListening = false;
+        let isFollowAlongActive = false;
+        let isVoiceSearching = false;
+        let recognition = null;
+        let recognizedWordsSet = new Set();
+        let flaggedMistakesSet = new Set();
+
+        const STORAGE_KEY_PROGRESS = 'hafazquran_kids_progress';
+        const STORAGE_KEY_WEEKLY = 'hafazquran_kids_weekly_v3';
+        const STORAGE_KEY_AYAH_CHECKS = 'hafazquran_kids_ayah_checks';
+        const STORAGE_KEY_GOAL = 'hafazquran_kids_personal_goal';
+
+        let surahProgress = JSON.parse(localStorage.getItem(STORAGE_KEY_PROGRESS)) || {};
+        let weeklyRecord = JSON.parse(localStorage.getItem(STORAGE_KEY_WEEKLY)) || {};
+        let ayahChecks = JSON.parse(localStorage.getItem(STORAGE_KEY_AYAH_CHECKS)) || {};
+        let personalGoal = localStorage.getItem(STORAGE_KEY_GOAL) || "Hafal 2 Surah Baru Minggu Ini";
+        const STORAGE_KEY_DAILY_AYAT = 'hafazquran_kids_daily_ayat';
+        const STORAGE_KEY_LASTSEEN = 'hafazquran_kids_last_seen';
+        let dailyAyat = JSON.parse(localStorage.getItem(STORAGE_KEY_DAILY_AYAT)) || {};
+        let lastSeen = JSON.parse(localStorage.getItem(STORAGE_KEY_LASTSEEN)) || {};
+
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            recordDailyActivity();
+            renderSurahList();
+            setupAudioEventListeners();
+            initDragDropGame();
+            renderWeeklyAnalytics();
+            initSpeechRecognition();
+            updatePersonalGoalDisplay();
+        });
+
+        function switchMainTab(tab) {
+            stopAiListener();
+            document.getElementById('viewHomeList').classList.add('hidden');
+            document.getElementById('viewSurahDetail').classList.add('hidden');
+            document.getElementById('sectionAnalytics').classList.add('hidden');
+            document.getElementById('sectionAnalytics').classList.remove('flex');
+            document.getElementById('sectionGame').classList.add('hidden');
+            document.getElementById('sectionGame').classList.remove('flex');
+
+            const inactive = "flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white transition";
+            document.getElementById('tabReader').className = inactive;
+            document.getElementById('tabAnalytics').className = inactive;
+            document.getElementById('tabGame').className = inactive;
+
+            if (tab === 'reader') {
+                document.getElementById('viewHomeList').classList.remove('hidden');
+                document.getElementById('tabReader').className = "flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-kidPink to-kidPurple text-white shadow-md transition";
+            } else if (tab === 'analytics') {
+                document.getElementById('sectionAnalytics').classList.remove('hidden');
+                document.getElementById('sectionAnalytics').classList.add('flex');
+                document.getElementById('tabAnalytics').className = "flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-kidYellow to-kidOrange text-slate-900 shadow-md transition";
+                renderWeeklyAnalytics();
+            } else if (tab === 'game') {
+                document.getElementById('sectionGame').classList.remove('hidden');
+                document.getElementById('sectionGame').classList.add('flex');
+                document.getElementById('tabGame').className = "flex-1 sm:flex-none px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-kidGreen to-emerald-500 text-slate-900 shadow-md transition";
+            }
+        }
+
+        function updatePersonalGoalDisplay() {
+            document.getElementById('displayPersonalGoal').innerText = personalGoal;
+        }
+
+        function editPersonalGoal() {
+            const newGoal = prompt("Masukkan matlamat peribadi hafazan anda:", personalGoal);
+            if (newGoal && newGoal.trim() !== "") {
+                personalGoal = newGoal.trim();
+                localStorage.setItem(STORAGE_KEY_GOAL, personalGoal);
+                updatePersonalGoalDisplay();
+            }
+        }
+
+        function recordDailyActivity() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            weeklyRecord[todayStr] = (weeklyRecord[todayStr] || 0) + 1;
+            localStorage.setItem(STORAGE_KEY_WEEKLY, JSON.stringify(weeklyRecord));
+        }
+
+        function renderWeeklyAnalytics() {
+            let memorizedCount = 0;
+            juz30Surahs.forEach(s => {
+                if (surahProgress[s.id] === 'memorized') memorizedCount++;
+            });
+            document.getElementById('statWeeklyMemorized').innerText = `${memorizedCount} / ${juz30Surahs.length}`;
+
+            const chartContainer = document.getElementById('weeklyChartContainer');
+            const labelsContainer = document.getElementById('weeklyLabelsContainer');
+            chartContainer.innerHTML = '';
+            labelsContainer.innerHTML = '';
+
+            const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+            const last7DaysData = [];
+            let totalSessions = 0;
+            let activeDaysCount = 0;
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateKey = d.toISOString().slice(0, 10);
+                const count = weeklyRecord[dateKey] || 0;
+                last7DaysData.push({ label: dayNames[d.getDay()], count });
+                totalSessions += count;
+                if (count > 0) activeDaysCount++;
+            }
+
+            document.getElementById('statDailyAverage').innerText = `${(totalSessions / 7).toFixed(1)} Sesi`;
+            document.getElementById('statWeeklyStreak').innerText = `${activeDaysCount} Hari`;
+
+            const maxVal = Math.max(...last7DaysData.map(d => d.count), 5);
+
+            last7DaysData.forEach(item => {
+                const heightPercent = Math.max(Math.round((item.count / maxVal) * 100), 10);
+
+                const col = document.createElement('div');
+                col.className = "flex flex-col items-center gap-1 h-full justify-end flex-1";
+                col.innerHTML = `
+                    <span class="text-[9px] font-bold text-kidYellow">${item.count}</span>
+                    <div class="w-full bg-gradient-to-t from-kidPink to-kidPurple rounded-t-xl transition-all duration-500" style="height: ${heightPercent}%"></div>
+                `;
+                chartContainer.appendChild(col);
+
+                const lbl = document.createElement('span');
+                lbl.className = "text-center flex-1";
+                lbl.innerText = item.label;
+                labelsContainer.appendChild(lbl);
+            });
+
+            renderAdvancedAnalytics();
+            renderDailyTasks();
+        }
+
+        const STORAGE_KEY_DAILY_TASKS = 'hafazquran_kids_daily_tasks';
+        let dailyTasksState = JSON.parse(localStorage.getItem(STORAGE_KEY_DAILY_TASKS)) || {};
+
+        function seededRandom(seedStr) {
+            let h = 1779033703 ^ seedStr.length;
+            for (let i = 0; i < seedStr.length; i++) {
+                h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+            }
+            return function () {
+                h = Math.imul(h ^ (h >>> 16), 2246822507);
+                h = Math.imul(h ^ (h >>> 13), 3266489909);
+                h ^= h >>> 16;
+                return (h >>> 0) / 4294967296;
+            };
+        }
+
+        function getSurahCounts() {
+            return juz30Surahs.map(surah => {
+                let checked = 0;
+                for (let n = 1; n <= surah.verses; n++) {
+                    if (ayahChecks[`${surah.id}_${n}`]) checked++;
+                }
+                return { surah, checked };
+            });
+        }
+
+        function generateDailyTasks(todayKey) {
+            const rand = seededRandom(todayKey);
+            const DAY = 86400000;
+            const now = Date.now();
+            const counts = getSurahCounts();
+            const pick = arr => arr[Math.floor(rand() * arr.length)];
+
+            const review = counts.filter(p => p.checked > 0 && (!lastSeen[p.surah.id] || now - new Date(lastSeen[p.surah.id]).getTime() > 3 * DAY));
+            const inProgress = counts.filter(p => p.checked > 0 && p.checked < p.surah.verses);
+            const fresh = counts.filter(p => p.checked === 0);
+
+            let sum7 = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                sum7 += dailyAyat[d.toISOString().slice(0, 10)] || 0;
+            }
+            const target = Math.max(3, Math.ceil(sum7 / 7) + 1);
+
+            const tasks = [];
+            if (review.length) {
+                const p = pick(review);
+                tasks.push({ text: `Ulang kaji ${p.surah.name} ${p.surah.emoji}`, type: 'manual' });
+            }
+            if (inProgress.length) {
+                const p = pick(inProgress);
+                const goal = Math.min(p.surah.verses, p.checked + 3);
+                tasks.push({ text: `Tambah hafalan ${p.surah.name} hingga ayat ${goal}`, type: 'manual' });
+            }
+            if (fresh.length) {
+                const p = pick(fresh);
+                tasks.push({ text: `Mula hafal ${p.surah.name} (ayat 1 hingga 3)`, type: 'manual' });
+            }
+            tasks.push({ text: `Hafal ${target} ayat hari ini`, type: 'auto', target });
+
+            const extras = [
+                'Main permainan Susun Ayat sekali',
+                'Cuba Uji Ingatan pada satu surah',
+                'Dengar satu surah dengan ulang 3x',
+                'Cuba Ikut Suara untuk satu surah'
+            ];
+            tasks.push({ text: pick(extras), type: 'manual' });
+
+            return { date: todayKey, tasks: tasks.map(t => ({ ...t, done: false })) };
+        }
+
+        function renderDailyTasks() {
+            const todayKey = new Date().toISOString().slice(0, 10);
+            if (dailyTasksState.date !== todayKey) {
+                dailyTasksState = generateDailyTasks(todayKey);
+            }
+
+            const todayCount = dailyAyat[todayKey] || 0;
+            dailyTasksState.tasks.forEach(t => {
+                if (t.type === 'auto') t.done = todayCount >= t.target;
+            });
+            localStorage.setItem(STORAGE_KEY_DAILY_TASKS, JSON.stringify(dailyTasksState));
+
+            const listEl = document.getElementById('dailyTasksList');
+            listEl.innerHTML = '';
+            dailyTasksState.tasks.forEach((t, i) => {
+                const row = document.createElement('button');
+                row.className = `flex items-center gap-3 p-3 rounded-2xl border-2 text-left text-xs font-bold transition ${
+                    t.done ? 'bg-emerald-950/20 border-emerald-500/80 text-kidGreen' : 'bg-kidDark border-slate-700 text-slate-200 hover:border-kidPink'
+                }`;
+                row.onclick = () => toggleDailyTask(i);
+                row.innerHTML = `
+                    <span class="w-5 h-5 rounded-md border-2 flex items-center justify-center text-[10px] ${t.done ? 'bg-kidGreen border-kidGreen text-slate-900' : 'border-slate-500'}">${t.done ? '✓' : ''}</span>
+                    <span class="${t.done ? 'line-through opacity-70' : ''}">${t.text}</span>
+                `;
+                listEl.appendChild(row);
+            });
+
+            const doneCount = dailyTasksState.tasks.filter(t => t.done).length;
+            document.getElementById('dailyTasksSummary').innerText = `${doneCount} / ${dailyTasksState.tasks.length} selesai`;
+        }
+
+        function toggleDailyTask(index) {
+            const t = dailyTasksState.tasks[index];
+            if (!t || t.type !== 'manual') return;
+            t.done = !t.done;
+            localStorage.setItem(STORAGE_KEY_DAILY_TASKS, JSON.stringify(dailyTasksState));
+            renderDailyTasks();
+        }
+
+        function renderAdvancedAnalytics() {
+            const DAY = 86400000;
+            const now = Date.now();
+            const totalAyat = juz30Surahs.reduce((s, x) => s + x.verses, 0);
+            let checkedAyat = 0;
+
+            const perSurah = juz30Surahs.map(surah => {
+                let checked = 0;
+                for (let n = 1; n <= surah.verses; n++) {
+                    if (ayahChecks[`${surah.id}_${n}`]) checked++;
+                }
+                checkedAyat += checked;
+                return { surah, checked };
+            });
+
+            document.getElementById('advAyatCount').innerText = `${checkedAyat} / ${totalAyat}`;
+            document.getElementById('advAyatBar').style.width = `${totalAyat ? Math.round(checkedAyat / totalAyat * 100) : 0}%`;
+
+            let sum7 = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                sum7 += dailyAyat[d.toISOString().slice(0, 10)] || 0;
+            }
+            const avg = sum7 / 7;
+            const remaining = totalAyat - checkedAyat;
+            const est = document.getElementById('advEstimate');
+            if (remaining <= 0) {
+                est.innerText = 'Tahniah! Semua ayat Juz 30 sudah dihafal.';
+            } else if (avg === 0) {
+                est.innerText = `Baki ${remaining} ayat. Hafal beberapa ayat untuk dapat anggaran.`;
+            } else {
+                est.innerText = `Baki ${remaining} ayat. Purata ${avg.toFixed(1)} ayat/hari, anggaran ${Math.ceil(remaining / avg)} hari lagi.`;
+            }
+
+            const reviewEl = document.getElementById('advReviewList');
+            reviewEl.innerHTML = '';
+            const review = perSurah
+                .filter(p => p.checked > 0 && (!lastSeen[p.surah.id] || now - new Date(lastSeen[p.surah.id]).getTime() > 3 * DAY))
+                .sort((a, b) => (lastSeen[a.surah.id] || '') < (lastSeen[b.surah.id] || '') ? -1 : 1);
+
+            if (review.length === 0) {
+                reviewEl.innerHTML = '<p class="text-slate-400">Tiada surah perlu diulang kaji. Bagus!</p>';
+            }
+            review.slice(0, 5).forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2';
+                const days = lastSeen[p.surah.id] ? Math.floor((now - new Date(lastSeen[p.surah.id]).getTime()) / DAY) : null;
+                row.innerHTML = `<span>${p.surah.emoji} ${p.surah.name}</span><span class="text-kidOrange">${days === null ? 'Belum dibuka' : days + ' hari lalu'}</span>`;
+                reviewEl.appendChild(row);
+            });
+
+            const progEl = document.getElementById('advSurahProgress');
+            progEl.innerHTML = '';
+            perSurah.filter(p => p.checked > 0).forEach(p => {
+                const pct = Math.round(p.checked / p.surah.verses * 100);
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    <div class="flex justify-between text-[11px] font-bold mb-1">
+                        <span class="text-white">${p.surah.emoji} ${p.surah.name}</span>
+                        <span class="text-kidYellow">${p.checked}/${p.surah.verses}</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-kidDark overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-kidPink to-kidPurple" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                progEl.appendChild(row);
+            });
+            if (progEl.children.length === 0) {
+                progEl.innerHTML = '<p class="text-xs text-slate-400">Belum ada ayat ditanda sebagai hafal.</p>';
+            }
+        }
+
+        function renderSurahList() {
+            const listEl = document.getElementById('surahList');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            listEl.innerHTML = '';
+
+            document.getElementById('filterAll').className = `flex-1 py-1.5 rounded-lg ${activeFilter === 'all' ? 'bg-kidPink text-white' : 'text-slate-400'}`;
+            document.getElementById('filterInProgress').className = `flex-1 py-1.5 rounded-lg ${activeFilter === 'inprogress' ? 'bg-kidOrange text-slate-900 font-black' : 'text-slate-400'}`;
+            document.getElementById('filterMemorized').className = `flex-1 py-1.5 rounded-lg ${activeFilter === 'memorized' ? 'bg-kidGreen text-slate-900 font-black' : 'text-slate-400'}`;
+
+            juz30Surahs.forEach((surah, idx) => {
+                const status = surahProgress[surah.id] || 'none';
+
+                if (activeFilter === 'all' && status === 'memorized') return;
+                if (activeFilter === 'inprogress' && status !== 'inprogress') return;
+                if (activeFilter === 'memorized' && status !== 'memorized') return;
+
+                const matchName = surah.name.toLowerCase().includes(searchVal);
+                const matchId = surah.id.toString().includes(searchVal);
+                if (!matchName && !matchId) return;
+
+                let badge = '⚪';
+                if (status === 'memorized') badge = '⭐';
+                if (status === 'inprogress') badge = '🚀';
+
+                const item = document.createElement('div');
+                item.className = "p-4 rounded-3xl cursor-pointer border-2 transition flex items-center justify-between bounce-on-hover bg-kidCard border-slate-700 hover:border-kidPink shadow-lg";
+                item.onclick = () => openSurahActivity(idx);
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl p-2 bg-kidDark rounded-2xl border border-slate-700">${surah.emoji}</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-sm font-black text-white">${surah.name}</h4>
+                                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-lg bg-slate-800 text-kidBlue">#${surah.id}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 font-bold">${surah.meaning} • ${surah.verses} Ayat</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="arabic-text text-sm font-bold text-kidYellow">${surah.arabic}</span>
+                        <span class="text-base">${badge}</span>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function openSurahActivity(index) {
+            currentSurahIndex = index;
+            currentAyahIndex = 1;
+            stopAiListener();
+
+            document.getElementById('viewHomeList').classList.add('hidden');
+            document.getElementById('sectionAnalytics').classList.add('hidden');
+            document.getElementById('sectionGame').classList.add('hidden');
+            document.getElementById('viewSurahDetail').classList.remove('hidden');
+            document.getElementById('viewSurahDetail').classList.add('flex');
+
+            lastSeen[juz30Surahs[index].id] = new Date().toISOString();
+            localStorage.setItem(STORAGE_KEY_LASTSEEN, JSON.stringify(lastSeen));
+            document.getElementById('bottomPlayerBar').classList.remove('hidden');
+            loadSurah(juz30Surahs[index].id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goBackHome() {
+            stopAiListener();
+            document.getElementById('viewSurahDetail').classList.add('hidden');
+            document.getElementById('viewSurahDetail').classList.remove('flex');
+            document.getElementById('viewHomeList').classList.remove('hidden');
+            renderSurahList();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function loadSurah(surahNum) {
+            const container = document.getElementById('versesContainer');
+            const surah = juz30Surahs.find(s => s.id === surahNum);
+
+            document.getElementById('currentSurahName').innerText = surah.name;
+            document.getElementById('currentSurahNumber').innerText = `#${surah.id}`;
+            document.getElementById('currentSurahMeaning').innerText = `${surah.meaning} • ${surah.verses} Ayat`;
+            document.getElementById('currentSurahEmoji').innerText = surah.emoji;
+            updateSurahStatusButton(surah.id);
+
+            container.innerHTML = `
+                <div class="py-10 text-center text-slate-400">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl text-kidPink mb-2"></i>
+                    <p class="text-xs font-bold">Memuatkan Ayat Surah ${surah.name}...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`https://equran.id/api/v2/surat/${surahNum}`);
+                const data = await res.json();
+
+                currentVersesData = data.data.ayat.map(a => ({
+                    number: a.nomorAyat,
+                    arabic: a.teksArab,
+                    transliteration: a.teksLatin || "",
+                    translation: a.teksIndonesia,
+                    audio: a.audio['05']
+                }));
+
+                recognizedWordsSet.clear();
+                flaggedMistakesSet.clear();
+                renderVerses();
+                updatePlayerInfo();
+            } catch (e) {
+                console.error("Ralat muat ayat:", e);
+                container.innerHTML = `<p class="py-10 text-center text-xs font-bold text-rose-400">Gagal memuatkan ayat. Sila cuba lagi.</p>`;
+            }
+        }
+
+        function renderVerses() {
+            const container = document.getElementById('versesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const currentSurahId = juz30Surahs[currentSurahIndex].id;
+
+            currentVersesData.forEach(v => {
+                const isActive = v.number === currentAyahIndex;
+                const checkKey = `${currentSurahId}_${v.number}`;
+                const isChecked = ayahChecks[checkKey] || false;
+
+                const card = document.createElement('div');
+                card.id = `verse-card-${v.number}`;
+                card.className = `p-4 rounded-2xl border-2 transition relative ${
+                    isChecked
+                        ? 'bg-emerald-950/20 border-emerald-500/80 shadow-md'
+                        : isActive
+                            ? 'bg-kidPurple/20 border-kidPink shadow-lg ring-2 ring-kidPink/50'
+                            : 'bg-kidDark border-slate-700/80'
+                }`;
+
+                let arabicHtml;
+                if (isAiListening) {
+                    arabicHtml = v.arabic.split(/\s+/).map((w, wIdx) => {
+                        const wordKey = `${v.number}_${wIdx}`;
+                        return recognizedWordsSet.has(wordKey)
+                            ? `<span class="inline-block px-1 text-kidYellow font-bold">${w}</span>`
+                            : `<span class="inline-block px-2 mx-1 bg-slate-800 text-transparent rounded select-none border border-slate-600">███</span>`;
+                    }).join(' ');
+                } else {
+                    arabicHtml = v.arabic;
+                }
+
+                const hideArabicNow = hideArabic && !isAiListening && !isFollowAlongActive;
+                const blurNow = isBlurMode && !isAiListening && !isFollowAlongActive;
+                const hideTranslitNow = hideTranslit || isAiListening || isFollowAlongActive;
+                const hideTranslationNow = hideTranslation || isAiListening || isFollowAlongActive;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <button onclick="playSpecificAyah(${v.number})" class="w-7 h-7 rounded-xl bg-kidPink text-white font-bold text-xs flex items-center justify-center bounce-on-hover">
+                                <i class="fa-solid ${isActive && isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+                            </button>
+                            <span class="px-2 py-0.5 rounded-lg bg-slate-800 text-kidBlue font-black text-[10px]">Ayat ${v.number}</span>
+                        </div>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/80 hover:bg-slate-700 px-2.5 py-1 rounded-xl border border-slate-700 transition">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleAyahCheck(${currentSurahId}, ${v.number})" class="w-3.5 h-3.5 accent-kidGreen rounded cursor-pointer">
+                            <span class="text-[11px] font-extrabold ${isChecked ? 'text-kidGreen' : 'text-slate-300'}">Hafal</span>
+                        </label>
+                    </div>
+                    <div class="arabic-text text-2xl sm:text-3xl text-right text-kidYellow mb-2 ${hideArabicNow ? 'hidden' : ''} ${blurNow ? 'blur-sm hover:blur-none transition' : ''}">
+                        ${arabicHtml}
+                    </div>
+                    <div class="translit-text text-xs sm:text-sm text-amber-200/95 font-semibold mb-2 ${hideTranslitNow ? 'hidden' : ''}">
+                        ${v.transliteration}
+                    </div>
+                    <div class="text-xs sm:text-sm text-slate-300 font-normal ${hideTranslationNow ? 'hidden' : ''}">
+                        ${v.translation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleAyahCheck(surahId, ayahNum) {
+            const key = `${surahId}_${ayahNum}`;
+            ayahChecks[key] = !ayahChecks[key];
+            localStorage.setItem(STORAGE_KEY_AYAH_CHECKS, JSON.stringify(ayahChecks));
+
+            const todayKey = new Date().toISOString().slice(0, 10);
+            if (ayahChecks[key]) {
+                dailyAyat[todayKey] = (dailyAyat[todayKey] || 0) + 1;
+            } else {
+                dailyAyat[todayKey] = Math.max((dailyAyat[todayKey] || 0) - 1, 0);
+            }
+            localStorage.setItem(STORAGE_KEY_DAILY_AYAT, JSON.stringify(dailyAyat));
+            lastSeen[surahId] = new Date().toISOString();
+            localStorage.setItem(STORAGE_KEY_LASTSEEN, JSON.stringify(lastSeen));
+            if (ayahChecks[key]) triggerConfetti();
+            checkAllAyahsCompleted(surahId);
+            renderVerses();
+        }
+
+        function checkAllAyahsCompleted(surahId) {
+            if (currentVersesData.length === 0) return;
+            const allChecked = currentVersesData.every(v => ayahChecks[`${surahId}_${v.number}`]);
+
+            if (allChecked) {
+                surahProgress[surahId] = 'memorized';
+                localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(surahProgress));
+                updateSurahStatusButton(surahId);
+                triggerConfetti();
+            } else if (surahProgress[surahId] === 'memorized') {
+                surahProgress[surahId] = 'inprogress';
+                localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(surahProgress));
+                updateSurahStatusButton(surahId);
+            }
+        }
+
+        function updatePlayerInfo() {
+            const surah = juz30Surahs[currentSurahIndex];
+            document.getElementById('playerBadge').innerText = `${surah.id}:${currentAyahIndex}`;
+            document.getElementById('playerSurahName').innerText = `${surah.name} (Ayat ${currentAyahIndex})`;
+            document.getElementById('repeatStatusText').innerText = `${currentRepeatCounter} / ${targetRepeatCount === 999 ? '∞' : targetRepeatCount}`;
+        }
+
+        function playSpecificAyah(verseNum) {
+            currentAyahIndex = verseNum;
+            currentRepeatCounter = 1;
+            renderVerses();
+            updatePlayerInfo();
+            playAudio();
+            recordDailyActivity();
+            const activeCard = document.getElementById(`verse-card-${verseNum}`);
+            if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function playAudio() {
+            const verse = currentVersesData.find(v => v.number === currentAyahIndex);
+            if (!verse) return;
+            audioPlayer.src = verse.audio;
+            audioPlayer.play().then(() => {
+                isPlaying = true;
+                updatePlayIcons();
+            }).catch(e => console.error(e));
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                isPlaying = false;
+            } else {
+                if (!audioPlayer.src) {
+                    playSpecificAyah(currentAyahIndex);
+                    return;
+                }
+                audioPlayer.play();
+                isPlaying = true;
+            }
+            updatePlayIcons();
+        }
+
+        function updatePlayIcons() {
+            document.getElementById('mainPlayIcon').className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play ml-0.5";
+            renderVerses();
+        }
+
+        function setRepeatCount(n) {
+            targetRepeatCount = n;
+            currentRepeatCounter = 1;
+            [1, 3, 5, 999].forEach(v => {
+                const id = v === 999 ? 'repInf' : `rep${v}`;
+                const el = document.getElementById(id);
+                el.className = v === n
+                    ? "px-2 py-0.5 rounded-lg bg-kidPink text-white"
+                    : "px-2 py-0.5 rounded-lg text-slate-400 bg-kidDark";
+            });
+            updatePlayerInfo();
+        }
+
+        function playNextAyah() {
+            if (currentAyahIndex < currentVersesData.length) {
+                currentAyahIndex++;
+                playSpecificAyah(currentAyahIndex);
+            }
+        }
+
+        function playPrevAyah() {
+            if (currentAyahIndex > 1) {
+                currentAyahIndex--;
+                playSpecificAyah(currentAyahIndex);
+            }
+        }
+
+        function setupAudioEventListeners() {
+            audioPlayer.addEventListener('ended', () => {
+                if (currentRepeatCounter < targetRepeatCount) {
+                    currentRepeatCounter++;
+                    updatePlayerInfo();
+                    audioPlayer.currentTime = 0;
+                    audioPlayer.play();
+                } else {
+                    playNextAyah();
+                }
+            });
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn("Speech Recognition tidak disokong oleh pelayar ini.");
+                return;
+            }
+            try {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event) => {
+                    let interim = '';
+                    let final = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+                        else interim += event.results[i][0].transcript;
+                    }
+                    const transcript = final || interim;
+                    if (transcript) {
+                        const transcriptEl = document.getElementById('aiLiveTranscript');
+                        if (transcriptEl) transcriptEl.innerText = `"${transcript}"`;
+
+                        if (isVoiceSearching) handleVoiceSearchMatch(transcript);
+                        else if (isAiListening) evaluateMemoryRecitation(transcript);
+                        else if (isFollowAlongActive) handleFollowAlongScrolling(transcript);
+                    }
+                };
+
+                recognition.onerror = (event) => console.warn("AI Mic Error:", event.error);
+
+                recognition.onend = () => {
+                    if (isAiListening || isFollowAlongActive || isVoiceSearching) {
+                        try { recognition.start(); } catch (e) {}
+                    }
+                };
+            } catch (err) {
+                console.error("Gagal mulakan Speech Recognition:", err);
+            }
+        }
+
+        function toggleAiVoiceSearch() {
+            if (!recognition) {
+                alert("Sila gunakan pelayar Google Chrome atau peranti yang menyokong Carian Suara AI.");
+                return;
+            }
+            isVoiceSearching = !isVoiceSearching;
+            if (isVoiceSearching) {
+                const btn = document.getElementById('btnAiVoiceSearch');
+                btn.className = "px-3 py-2.5 bg-rose-500 text-white rounded-2xl font-bold text-xs flex items-center gap-1.5 shadow-lg transition bounce-on-hover animate-pulse";
+                btn.innerHTML = `<i class="fa-solid fa-microphone-lines text-white"></i> <span>Mendengar Carian...</span>`;
+                try { recognition.start(); } catch (e) {}
+            } else {
+                stopVoiceSearch();
+            }
+        }
+
+        function stopVoiceSearch() {
+            isVoiceSearching = false;
+            const btn = document.getElementById('btnAiVoiceSearch');
+            if (btn) {
+                btn.className = "px-3 py-2.5 bg-kidPurple hover:bg-purple-700 text-white rounded-2xl font-bold text-xs flex items-center gap-1.5 shadow-lg transition bounce-on-hover";
+                btn.innerHTML = `<i class="fa-solid fa-microphone text-kidYellow"></i> <span class="hidden sm:inline">Cari Suara AI</span>`;
+            }
+        }
+
+        function handleVoiceSearchMatch(spokenText) {
+            const cleanSpoken = spokenText.replace(/[^\u0600-\u06FF\s]/g, "").trim();
+            if (cleanSpoken.length < 2) return;
+            for (let sIdx = 0; sIdx < juz30Surahs.length; sIdx++) {
+                const s = juz30Surahs[sIdx];
+                if (s.name.toLowerCase().includes(spokenText.toLowerCase()) || s.arabic.includes(cleanSpoken)) {
+                    stopVoiceSearch();
+                    openSurahActivity(sIdx);
+                    triggerConfetti();
+                    return;
+                }
+            }
+        }
+
+        function toggleFollowAlongMode() {
+            if (!recognition) {
+                alert("Sila gunakan pelayar Google Chrome untuk Mod Ikut Suara.");
+                return;
+            }
+            isFollowAlongActive = !isFollowAlongActive;
+            if (isFollowAlongActive) {
+                isAiListening = false;
+                recognizedWordsSet.clear();
+            }
+
+            const btn = document.getElementById('btnFollowAlong');
+            const feedbackBox = document.getElementById('aiFeedbackBox');
+
+            if (isFollowAlongActive) {
+                btn.className = "p-2 rounded-2xl bg-kidGreen text-slate-900 border-2 border-emerald-300 flex items-center justify-center gap-2 transition bounce-on-hover shadow-lg font-black";
+                feedbackBox.classList.remove('hidden');
+                feedbackBox.classList.add('flex');
+                document.getElementById('aiStatusText').innerText = "Mod Ikut Suara Aktif: Skrin menatal mengikut suara anda...";
+                try { recognition.start(); } catch (e) {}
+            } else {
+                stopAiListener();
+            }
+            renderVerses();
+        }
+
+        function handleFollowAlongScrolling(spokenText) {
+            const cleanSpoken = spokenText.replace(/[^\u0600-\u06FF\s]/g, "").trim();
+            currentVersesData.forEach(v => {
+                const cleanArabic = v.arabic.replace(/[^\u0600-\u06FF\s]/g, "");
+                if (cleanArabic.includes(cleanSpoken) || cleanSpoken.includes(cleanArabic.slice(0, 10))) {
+                    currentAyahIndex = v.number;
+                    renderVerses();
+                    const card = document.getElementById(`verse-card-${v.number}`);
+                    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        function toggleAiListener() {
+            if (!recognition) {
+                alert("Sila gunakan pelayar Google Chrome (Android/Desktop) untuk menggunakan fungsi AI Uji Bacaan.");
+                return;
+            }
+            isAiListening = !isAiListening;
+            if (isAiListening) isFollowAlongActive = false;
+
+            const btn = document.getElementById('btnAiListener');
+            const txt = document.getElementById('aiListenerText');
+            const feedbackBox = document.getElementById('aiFeedbackBox');
+
+            if (isAiListening) {
+                recognizedWordsSet.clear();
+                flaggedMistakesSet.clear();
+                btn.className = "col-span-2 sm:col-span-1 p-2 rounded-2xl bg-rose-500 text-white border-2 border-rose-300 flex items-center justify-center gap-2 transition bounce-on-hover shadow-lg";
+                txt.innerText = "Tutup AI Hafal";
+                feedbackBox.classList.remove('hidden');
+                feedbackBox.classList.add('flex');
+                document.getElementById('aiStatusText').innerText = "Mod Hafalan AI Aktif: Sila baca ayat dari ingatan...";
+                try { recognition.start(); } catch (e) {}
+                renderVerses();
+            } else {
+                stopAiListener();
+            }
+        }
+
+        function stopAiListener() {
+            isAiListening = false;
+            isFollowAlongActive = false;
+            if (recognition) {
+                try { recognition.stop(); } catch (e) {}
+            }
+            const btn = document.getElementById('btnAiListener');
+            const txt = document.getElementById('aiListenerText');
+            const btnFollow = document.getElementById('btnFollowAlong');
+            const feedbackBox = document.getElementById('aiFeedbackBox');
+
+            if (btn) btn.className = "col-span-2 sm:col-span-1 p-2 rounded-2xl bg-gradient-to-r from-kidGreen to-emerald-600 text-slate-900 border-2 border-emerald-400 flex items-center justify-center gap-2 transition bounce-on-hover shadow-lg";
+            if (txt) txt.innerText = "AI Uji Bacaan";
+            if (btnFollow) btnFollow.className = "p-2 rounded-2xl bg-kidDark hover:bg-slate-800 border-2 border-slate-700 text-slate-200 flex items-center justify-center gap-2 transition";
+            if (feedbackBox) {
+                feedbackBox.classList.add('hidden');
+                feedbackBox.classList.remove('flex');
+            }
+            renderVerses();
+        }
+
+        function evaluateMemoryRecitation(spokenText) {
+            const cleanSpoken = spokenText.replace(/[^\u0600-\u06FF\s]/g, "").trim();
+            const spokenWords = cleanSpoken.split(/\s+/).filter(w => w.length > 0);
+
+            let updated = false;
+            currentVersesData.forEach(v => {
+                v.arabic.split(/\s+/).forEach((w, wIdx) => {
+                    const wordKey = `${v.number}_${wIdx}`;
+                    const cleanWord = w.replace(/[\u064B-\u065F\u0670]/g, "").replace(/[^\u0600-\u06FF]/g, "");
+                    const isMatched = spokenWords.some(sw => {
+                        const cleanSw = sw.replace(/[\u064B-\u065F\u0670]/g, "").replace(/[^\u0600-\u06FF]/g, "");
+                        return cleanSw.length > 0 && (cleanWord.includes(cleanSw) || cleanSw.includes(cleanWord));
+                    });
+                    if (isMatched && !recognizedWordsSet.has(wordKey)) {
+                        recognizedWordsSet.add(wordKey);
+                        updated = true;
+                    }
+                });
+            });
+
+            if (updated) {
+                triggerConfetti();
+                renderVerses();
+            }
+        }
+
+        async function initDragDropGame() {
+            const surahId = document.getElementById('gameSurahSelect').value;
+            const dropSlotsContainer = document.getElementById('dropSlotsContainer');
+            const dragPiecesContainer = document.getElementById('dragPiecesContainer');
+
+            dropSlotsContainer.innerHTML = '<p class="text-xs text-slate-400 font-bold p-3">Memuatkan game...</p>';
+            dragPiecesContainer.innerHTML = '';
+
+            try {
+                const res = await fetch(`https://equran.id/api/v2/surat/${surahId}`);
+                const data = await res.json();
+                gameSurahVerses = data.data.ayat.map(a => ({ id: a.nomorAyat, arabic: a.teksArab }));
+
+                dropSlotsContainer.innerHTML = '';
+                dragPiecesContainer.innerHTML = '';
+
+                gameSurahVerses.forEach((v, index) => {
+                    const slot = document.createElement('div');
+                    slot.className = "drop-zone border-2 border-dashed border-slate-600 bg-kidDark/60 p-2 sm:p-3 rounded-2xl min-h-[55px] flex items-center justify-between gap-2 text-xs transition cursor-pointer";
+                    slot.dataset.slotIndex = index + 1;
+
+                    const label = document.createElement('span');
+                    label.className = "slot-label text-[10px] font-black text-slate-500 bg-slate-800 px-2 py-1 rounded-lg shrink-0";
+                    label.innerText = `Ayat ${index + 1}`;
+                    slot.appendChild(label);
+
+                    slot.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        slot.classList.add('drag-over');
+                    });
+                    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                    slot.addEventListener('drop', e => {
+                        e.preventDefault();
+                        slot.classList.remove('drag-over');
+                        if (draggedElement) movePieceToSlot(draggedElement, slot);
+                    });
+
+                    slot.addEventListener('click', () => {
+                        const piece = slot.querySelector('.drag-piece');
+                        if (piece) {
+                            dragPiecesContainer.appendChild(piece);
+                            resetSlotBorders(slot);
+                        }
+                    });
+
+                    dropSlotsContainer.appendChild(slot);
+                });
+
+                const shuffled = [...gameSurahVerses].sort(() => Math.random() - 0.5);
+                shuffled.forEach(v => {
+                    const piece = document.createElement('div');
+                    piece.className = "drag-piece bg-kidDark border-2 border-kidPink p-2 sm:p-3 rounded-2xl cursor-grab active:cursor-grabbing text-right arabic-text text-base sm:text-xl text-kidYellow shadow-md transition hover:border-kidYellow";
+                    piece.draggable = true;
+                    piece.dataset.verseId = v.id;
+                    piece.innerText = v.arabic;
+
+                    piece.addEventListener('dragstart', e => {
+                        draggedElement = piece;
+                        piece.classList.add('dragging');
+                        if (e.dataTransfer) {
+                            e.dataTransfer.setData('text/plain', v.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                        }
+                    });
+                    piece.addEventListener('dragend', () => {
+                        piece.classList.remove('dragging');
+                        draggedElement = null;
+                    });
+                    piece.addEventListener('click', e => {
+                        e.stopPropagation();
+                        if (piece.parentElement.classList.contains('drop-zone')) return;
+                        const emptySlot = Array.from(document.querySelectorAll('.drop-zone')).find(s => !s.querySelector('.drag-piece'));
+                        if (emptySlot) movePieceToSlot(piece, emptySlot);
+                    });
+
+                    dragPiecesContainer.appendChild(piece);
+                });
+            } catch (err) {
+                console.error("Ralat init game:", err);
+                dropSlotsContainer.innerHTML = '<p class="text-xs text-rose-400 font-bold p-3">Gagal memuatkan game.</p>';
+            }
+        }
+
+        function movePieceToSlot(piece, slot) {
+            const existing = slot.querySelector('.drag-piece');
+            if (existing) document.getElementById('dragPiecesContainer').appendChild(existing);
+            slot.appendChild(piece);
+            resetSlotBorders(slot);
+        }
+
+        function resetSlotBorders(slot) {
+            slot.classList.remove('border-rose-500', 'border-emerald-500', 'bg-emerald-950/20');
+        }
+
+        function checkGameAnswer() {
+            const slots = document.querySelectorAll('.drop-zone');
+            let isAllCorrect = true;
+            let filledCount = 0;
+
+            slots.forEach(slot => {
+                const targetIndex = slot.dataset.slotIndex;
+                const placedPiece = slot.querySelector('.drag-piece');
+
+                if (placedPiece) {
+                    filledCount++;
+                    if (placedPiece.dataset.verseId === targetIndex) {
+                        slot.classList.remove('border-rose-500', 'border-slate-600');
+                        slot.classList.add('border-emerald-500', 'bg-emerald-950/20');
+                    } else {
+                        isAllCorrect = false;
+                        slot.classList.remove('border-slate-600');
+                        slot.classList.add('border-rose-500');
+                    }
+                } else {
+                    isAllCorrect = false;
+                    slot.classList.remove('border-emerald-500', 'border-rose-500');
+                    slot.classList.add('border-slate-600');
+                }
+            });
+
+            if (filledCount < gameSurahVerses.length) return;
+            if (isAllCorrect) triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function toggleVisibility(type) {
+            if (type === 'arabic') hideArabic = !hideArabic;
+            if (type === 'transliteration') hideTranslit = !hideTranslit;
+            if (type === 'translation') hideTranslation = !hideTranslation;
+            renderVerses();
+        }
+
+        function toggleBlurMode() {
+            isBlurMode = !isBlurMode;
+            renderVerses();
+        }
+
+        function toggleSurahStatus() {
+            const surahId = juz30Surahs[currentSurahIndex].id;
+            const currentStatus = surahProgress[surahId] || 'none';
+
+            if (currentStatus === 'none') surahProgress[surahId] = 'inprogress';
+            else if (currentStatus === 'inprogress') {
+                surahProgress[surahId] = 'memorized';
+                triggerConfetti();
+            } else {
+                surahProgress[surahId] = 'none';
+            }
+
+            localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(surahProgress));
+            updateSurahStatusButton(surahId);
+        }
+
+        function updateSurahStatusButton(surahId) {
+            const status = surahProgress[surahId] || 'none';
+            const btn = document.getElementById('btnStatusSurah');
+            const txt = document.getElementById('statusSurahText');
+            const icon = document.getElementById('statusIcon');
+
+            if (status === 'memorized') {
+                btn.className = "px-3 py-2 rounded-2xl text-xs font-extrabold bg-kidGreen text-slate-900 border-2 border-emerald-400 flex items-center gap-2 transition bounce-on-hover";
+                txt.innerText = "Sudah Hafal";
+                icon.innerText = "⭐";
+            } else if (status === 'inprogress') {
+                btn.className = "px-3 py-2 rounded-2xl text-xs font-extrabold bg-kidOrange text-slate-900 border-2 border-orange-400 flex items-center gap-2 transition bounce-on-hover";
+                txt.innerText = "Sedang Belajar";
+                icon.innerText = "🚀";
+            } else {
+                btn.className = "px-3 py-2 rounded-2xl text-xs font-extrabold bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center gap-2 transition bounce-on-hover";
+                txt.innerText = "Belum Hafal";
+                icon.innerText = "⚪";
+            }
+        }
+
+        function setFilter(type) {
+            activeFilter = type;
+            renderSurahList();
+        }
+
+        function filterSurahs() {
+            renderSurahList();
+        }
+
+        function togglePlayerMinimize() {
+            isPlayerMinimized = !isPlayerMinimized;
+            const expandedContent = document.getElementById('playerExpandedContent');
+            const icon = document.querySelector('#btnTogglePlayer i');
+            if (isPlayerMinimized) {
+                expandedContent.classList.add('hidden');
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                expandedContent.classList.remove('hidden');
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+    </script>
+</body>
+</html>
